@@ -14,20 +14,22 @@ os_client = OpenSearch(
 neo4j_driver = GraphDatabase.driver("bolt://localhost:7687", auth=("neo4j", "password123"))
 ollama_client = ollama.Client()
 
-# --- 2. Define YOUR Knowledge Graph Facts ---
-# !!! IMPORTANT: You MUST edit this section to match your books !!!
+# --- 2. Define YOUR Knowledge Graph Facts to Match the Books---
 KG_FACTS = [
-    "CREATE (b:Book {title: 'Dune'})",
-    "CREATE (a:Author {name: 'Frank Herbert'})",
-    "CREATE (c1:Concept {name: 'Ecology'})",
-    "CREATE (c2:Concept {name: 'Politics'})",
-    "CREATE (c3:Concept {name: 'Religion'})",
+    "CREATE (b:Book {title: 'A tale of two cities'})",
+    "CREATE (a:Author {name: 'Charles Dickens'})",
+    "CREATE (g1:Genre {name: 'Historical Novel'})",
+    "CREATE (c1:Concept {name: 'Drama'})",
+    "CREATE (c2:Concept {name: 'Resurrection'})",
+    "CREATE (c3:Concept {name: 'Sacrifice'})",
+    "CREATE (c4:Concept {name: 'French Revolution'})",
 
     # Relationships
-    "MATCH (b:Book {title: 'Dune'}), (a:Author {name: 'Frank Herbert'}) CREATE (b)-[:WRITTEN_BY]->(a)",
-    "MATCH (b:Book {title: 'Dune'}), (c:Concept {name: 'Ecology'}) CREATE (b)-[:DISCUSSES]->(c)",
-    "MATCH (b:Book {title: 'Dune'}), (c:Concept {name: 'Politics'}) CREATE (b)-[:DISCUSSES]->(c)",
-    "MATCH (b:Book {title: 'Dune'}), (c:Concept {name: 'Religion'}) CREATE (b)-[:DISCUSSES]->(c)",
+    "MATCH (b:Book {title: 'A tale of two cities'}), (a:Author {name: 'Charles Dickens'}) CREATE (b)-[:WRITTEN_BY]->(a)",
+    "MATCH (b:Book {title: 'A tale of two cities'}), (g:Genre {name: 'Historical Novel'}) CREATE (b)-[:HAS_GENRE]->(g)",
+    "MATCH (b:Book {title: 'A tale of two cities'}), (c:Concept {name: 'Drama'}) CREATE (b)-[:DISCUSSES]->(c)",
+    "MATCH (b:Book {title: 'A tale of two cities'}), (c:Concept {name: 'Resurrection'}) CREATE (b)-[:DISCUSSES]->(c)",
+    "MATCH (b:Book {title: 'A tale of two cities'}), (c:Concept {name: 'Sacrifice'}) CREATE (b)-[:DISCUSSES]->(c)",
 ]
 
 # --- 3. Document Loading and Chunking ---

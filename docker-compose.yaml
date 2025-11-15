@@ -21,6 +21,17 @@ services:
     volumes:
       - "opensearch_data:/usr/share/opensearch/data"
 
+  opensearch-dashboards:
+    image: opensearchproject/opensearch-dashboards:2.11.1
+    container_name: opensearch-dashboards
+    ports:
+      - "5601:5601" # The UI port
+    environment:
+      - "OPENSEARCH_HOSTS=http://opensearch-node:9200" # Tells Dashboards where to find the engine
+      - "plugins.security.disabled=true" # Must match the node
+    depends_on:
+      - opensearch-node # Waits for the node to start
+
   neo4j:
     image: neo4j:5
     container_name: neo4j

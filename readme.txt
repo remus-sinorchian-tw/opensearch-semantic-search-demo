@@ -5,7 +5,16 @@ ollama pull nomic-embed-text
 # A fast, powerful chat model
 ollama pull llama3
 
-2. start.sh
+2. Run start.sh
+
+Neo4J
+http://localhost:7474/browser/
+
+OpenSearch API check
+http://localhost:9200
+
+OpenSearch Dashboards
+http://localhost:5601
 
 3. Create a Python Environment:
 python -m venv venv
