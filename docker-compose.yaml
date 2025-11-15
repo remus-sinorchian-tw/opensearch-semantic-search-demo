@@ -1,0 +1,38 @@
+version: "3.8"
+services:
+  opensearch-node:
+    image: opensearchproject/opensearch:2.11.1
+    container_name: opensearch-node
+    environment:
+      - "discovery.type=single-node"
+      - "plugins.security.disabled=true" # Easiest for a local demo
+      - "bootstrap.memory_lock=true"
+      - "OPENSEARCH_JAVA_OPTS=-Xms512m -Xmx512m" # Keep it lightweight
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+      nofile:
+        soft: 65536
+        hard: 65536
+    ports:
+      - "9200:9200" # Main API port
+      - "9600:9600" # Performance analyzer
+    volumes:
+      - "opensearch_data:/usr/share/opensearch/data"
+
+  neo4j:
+    image: neo4j:5
+    container_name: neo4j
+    environment:
+      - "NEO4J_AUTH=neo4j/password123" # Change password
+      - 'NEO4J_PLUGINS=["apoc"]'
+    ports:
+      - "7474:7474" # Web UI (Neo4j Browser)
+      - "7687:7687" # Bolt protocol (for Python driver)
+    volumes:
+      - "neo4j_data:/data"
+
+volumes:
+  opensearch_data:
+  neo4j_data:
