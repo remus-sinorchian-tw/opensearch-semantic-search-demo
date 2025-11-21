@@ -9,6 +9,7 @@ ollama pull llama3
 
 Neo4J
 http://localhost:7474/browser/
+(log in with neo4j/password123)
 
 OpenSearch API check
 http://localhost:9200

@@ -5,6 +5,9 @@ import docx
 from opensearchpy import OpenSearch
 from neo4j import GraphDatabase
 
+EMBEDDING_MODEL = "all-minilm" # "nomic-embed-text" Or "all-minilm" if you switched models
+VECTOR_DIMENSION = 384                # 768 for nomic-embed-text, 384 for all-minilm
+
 # --- 1. Connect to Services ---
 os_client = OpenSearch(
     hosts=[{'host': 'localhost', 'port': 9200}],
@@ -94,7 +97,7 @@ def populate_opensearch(chunks):
     index_name = "book_chunks"
     print(f"Populating OpenSearch index '{index_name}'...")
 
-    if os_client.indices.exists(index_name):
+    if os_client.indices.exists(index=index_name):
         os_client.indices.delete(index=index_name)
 
     # Create the index with hybrid mapping
@@ -102,11 +105,11 @@ def populate_opensearch(chunks):
         "settings": { "index.knn": True },
         "mappings": {
             "properties": {
-                "source_book": { "type": "keyword" }, # For filtering
-                "content": { "type": "text" },        # For keyword search
-                "content_vector": {                   # For vector search
+                "source_book": { "type": "keyword" }, 
+                "content": { "type": "text" },        
+                "content_vector": {                   
                     "type": "knn_vector",
-                    "dimension": 768, # Dimension for 'nomic-embed-text'
+                    "dimension": VECTOR_DIMENSION,
                     "method": { "name": "hnsw", "space_type": "l2", "engine": "faiss" }
                 }
             }
@@ -119,11 +122,11 @@ def populate_opensearch(chunks):
         try:
             # Get embedding from Ollama
             response = ollama_client.embeddings(
-                model="nomic-embed-text",
+                model=EMBEDDING_MODEL,
                 prompt=chunk['content']
             )
             vector = response['embedding']
-
+            
             # Index into OpenSearch
             os_client.index(
                 index=index_name,
@@ -133,12 +136,12 @@ def populate_opensearch(chunks):
                     "content": chunk['content'],
                     "content_vector": vector
                 },
-                refresh=False # Set to False for faster bulk indexing
+                refresh=False
             )
         except Exception as e:
             print(f"Error indexing chunk {chunk['chunk_id']}: {e}")
 
-    os_client.indices.refresh(index=index_name) # Refresh once at the end
+    os_client.indices.refresh(index=index_name) 
     print("OpenSearch populated with book chunks.")
 
 # --- Run the Ingestion ---
@@ -147,7 +150,7 @@ if __name__ == "__main__":
     populate_kg()
 
     # 2. Load, chunk, and embed your books
-    book_chunks = load_and_chunk_documents('./books_to_ingest')
+    book_chunks = load_and_chunk_documents('./books')
     if book_chunks:
         populate_opensearch(book_chunks)
     else:

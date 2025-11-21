@@ -8,8 +8,9 @@ os_client = OpenSearch(hosts=[{'host': 'localhost', 'port': 9200}], use_ssl=Fals
 neo4j_driver = GraphDatabase.driver("bolt://localhost:7687", auth=("neo4j", "password123"))
 ollama_client = ollama.Client()
 
-EMBEDDING_MODEL = "nomic-embed-text"
-LLM_MODEL = "llama3"
+EMBEDDING_MODEL = "all-minilm" # "nomic-embed-text" Or "all-minilm" if you switched models
+VECTOR_DIMENSION = 384                # 768 for nomic-embed-text, 384 for all-minilm
+LLM_MODEL = "gemma3:12b"
 
 # --- 2. The NLP "Query Analysis" Step ---
 def analyze_query_with_llm(user_query):
@@ -18,7 +19,7 @@ def analyze_query_with_llm(user_query):
     You are a query analysis expert for a personal research assistant.
     Analyze the user's query about their books and extract:
     1. 'semantic_query': A string that captures the core semantic meaning, focusing on the content of the books.
-    2. 'keywords': A list of critical keywords (like book titles, character names, specific terms).
+    2. 'keywords': A list of critical keywords (like character names, specific terms).
     3. 'kg_entities': A list of entities (people, locations, concepts, book titles) to search in the Knowledge Graph.
 
     User Query: "{user_query}"
@@ -30,7 +31,7 @@ def analyze_query_with_llm(user_query):
     JSON:
     {{
       "semantic_query": "passages discussing ecology",
-      "keywords": ["Dune", "ecology"],
+      "keywords": ["ecology"],
       "kg_entities": ["Dune"]
     }}
     """
@@ -78,10 +79,10 @@ def search_knowledge_graph(entities):
     return "\n".join(findings)
 
 def search_opensearch_hybrid(semantic_query, keywords):
-    print(f"--- Running Hybrid Search on Book Chunks ---")
+    print(f"--- Running Hybrid Search on Book Chunks with keywords \n {keywords} \n and semantic query {semantic_query}---")
 
     vector = ollama_client.embeddings(model=EMBEDDING_MODEL, prompt=semantic_query)['embedding']
-
+    
     query = {
       "size": 3, # Get top 3 matching chunks
       "query": {
@@ -163,16 +164,16 @@ def synthesize_answer(user_query, kg_findings, os_findings):
 # --- 5. Run the Demo ---
 if __name__ == "__main__":
     # Edit this query to match your books and KG!
-    my_query = "Find passages in 'Dune' about 'ecology' and tell me who the author is."
+    my_query = "Find in 'A tale of two cities' passages where Miss Pross apears."
 
     # Step 1: Analyze
     analysis = analyze_query_with_llm(my_query)
 
     # Step 2: Retrieve
-    kg_results = search_knowledge_graph(analysis['kg_entities'])
+    # kg_results = search_knowledge_graph(analysis['kg_entities'])
     os_results = search_opensearch_hybrid(analysis['semantic_query'], analysis['keywords'])
 
     # Step 3: Synthesize
-    synthesize_answer(my_query, kg_results, os_results)
+    # synthesize_answer(my_query, kg_results, os_results)
 
     neo4j_driver.close()

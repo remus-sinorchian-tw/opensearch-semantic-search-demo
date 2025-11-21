@@ -28,7 +28,7 @@ services:
       - "5601:5601" # The UI port
     environment:
       - "OPENSEARCH_HOSTS=http://opensearch-node:9200" # Tells Dashboards where to find the engine
-      - "plugins.security.disabled=true" # Must match the node
+      - "DISABLE_SECURITY_DASHBOARDS_PLUGIN=true"
     depends_on:
       - opensearch-node # Waits for the node to start
 
