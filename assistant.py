@@ -79,12 +79,12 @@ def search_knowledge_graph(entities):
     return "\n".join(findings)
 
 def search_opensearch_hybrid(semantic_query, keywords):
-    print(f"--- Running Hybrid Search on Book Chunks with keywords \n {keywords} \n and semantic query {semantic_query}---")
+    print(f"--- Running Hybrid Search on Book Chunks with keywords \n {keywords} \n and semantic query '{semantic_query}'\n---")
 
     vector = ollama_client.embeddings(model=EMBEDDING_MODEL, prompt=semantic_query)['embedding']
     
     query = {
-      "size": 3, # Get top 3 matching chunks
+      "size": 5, # Get top 3 matching chunks
       "query": {
         "hybrid": {
           "queries": [
@@ -146,6 +146,7 @@ def synthesize_answer(user_query, kg_findings, os_findings):
     Your final, synthesized answer for the user:
     """
 
+    print(f'The prompt passed to the LLM is: {prompt}')
     response = ollama_client.chat(
         model=LLM_MODEL,
         messages=[{'role': 'user', 'content': prompt}],
@@ -164,16 +165,16 @@ def synthesize_answer(user_query, kg_findings, os_findings):
 # --- 5. Run the Demo ---
 if __name__ == "__main__":
     # Edit this query to match your books and KG!
-    my_query = "Find in 'A tale of two cities' passages where Miss Pross apears."
+    my_query = "Find in 'A tale of two cities' what political orientations did characters have. Give a few examples."
 
     # Step 1: Analyze
     analysis = analyze_query_with_llm(my_query)
 
     # Step 2: Retrieve
-    # kg_results = search_knowledge_graph(analysis['kg_entities'])
+    kg_results = search_knowledge_graph(analysis['kg_entities'])
     os_results = search_opensearch_hybrid(analysis['semantic_query'], analysis['keywords'])
 
     # Step 3: Synthesize
-    # synthesize_answer(my_query, kg_results, os_results)
+    synthesize_answer(my_query, kg_results, os_results)
 
     neo4j_driver.close()
